@@ -44,18 +44,37 @@
       }
     };
 
+    // Fallback: highlight nav on click
+    navLinks.forEach((a) => {
+      a.addEventListener("click", (e) => {
+        const hash = a.getAttribute("href");
+        if (hash && byId.has(hash.slice(1))) {
+          setActive(hash.slice(1));
+        }
+      });
+    });
+
+    // Adjusted observer: highlight section when its top is near viewport top
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0));
-
-        if (visible.length) setActive(visible[0].target.id);
+        // Find the entry closest to the top and visible
+        let minTop = Infinity;
+        let activeId = null;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const rect = entry.boundingClientRect;
+            if (rect.top >= 0 && rect.top < minTop) {
+              minTop = rect.top;
+              activeId = entry.target.id;
+            }
+          }
+        }
+        if (activeId) setActive(activeId);
       },
       {
         root: null,
-        threshold: [0.2, 0.35, 0.5],
-        rootMargin: "-12% 0px -70% 0px",
+        threshold: 0.3,
+        rootMargin: "-20% 0px -70% 0px",
       },
     );
 
